@@ -1,0 +1,17 @@
+
+
+POST http://localhost:3000/clientes
+Content-Type: application/json
+
+{
+    "nome": "Teste 2",
+    "cpf": "3565445"
+}
+
+
+###
+GET http://localhost:3000/clientes/3565445
+
+
+###
+GET http://localhost:3000/

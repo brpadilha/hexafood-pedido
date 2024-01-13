@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: api-migration
+spec:
+  template:
+    spec:
+      containers:
+        - name: api-migration
+          image: marayza/hexafoodk8s:v15
+          command: ['/bin/sh', '-c']
+          args:
+            - './wait-for-it.sh postgres-service:5432 -- yarn prisma migrate dev && yarn prisma db seed'
+          envFrom:
+            - secretRef:
+                name: postgres-secret
+      restartPolicy: OnFailure

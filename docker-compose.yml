@@ -1,0 +1,47 @@
+  version: '3.8'
+  services:
+    postgres:
+      image: postgres:13-alpine
+      container_name: 'hexafood-postgres'
+      ports:
+        - 5432:5432
+      env_file:
+        - .env.dev
+      volumes:
+        - postgres:/var/lib/postgresql/data
+      networks:
+        - hexafood-bridge
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U userpg -d hexafood"]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+
+    api:
+      container_name: 'hexafood-api'
+      build:
+        context: .
+        dockerfile: Dockerfile
+        args:
+          - NODE_ENV=development
+      env_file:
+        - .env.dev
+      networks:
+        - hexafood-bridge
+      ports:
+        - 3000:3000
+      depends_on:
+        - postgres
+      links:
+        - postgres:postgres
+      command: ["./wait-for-it.sh", "postgres:5432", "--", "./start.sh"]
+      volumes:
+        - .:/home/node/app
+        - /home/node/app/node_modules
+
+  networks:
+    hexafood-bridge:
+      driver: bridge
+
+  volumes:
+    postgres:

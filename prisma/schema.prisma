@@ -1,0 +1,107 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "darwin"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Cliente {
+  id        Int         @id @default(autoincrement())
+  nome      String
+  cpf       String      @unique
+  createdAt DateTime    @default(now())
+  Pagamento Pagamento[]
+  Pedido    Pedido[]
+
+  @@map("clientes")
+}
+
+model Categoria {
+  id       Int       @id @default(autoincrement())
+  nome     String
+  produtos Produto[]
+
+  @@map("categorias")
+}
+
+model Produto {
+  id           Int       @id @default(autoincrement())
+  nome         String
+  id_categoria Int
+  valor        Float
+  descricao    String
+  imagem       String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now())
+  categoria    Categoria @relation(fields: [id_categoria], references: [id])
+  itens        Item[]
+
+  @@map("produtos")
+}
+
+model Pedido {
+  id            Int      @id @default(autoincrement())
+  codigo_pedido String   @unique
+  valor_total   Float
+  status        String   @default("INICIADO")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+
+  id_cliente Int?
+  cliente    Cliente?    @relation(fields: [id_cliente], references: [id])
+  itens      Item[]
+  Pagamento  Pagamento[]
+  @@map("pedidos")
+}
+
+model Item {
+  id         Int   @id @default(autoincrement())
+  // numero_item Int
+  quantidade Int
+  valor      Float
+
+  id_pedido Int
+  pedido    Pedido @relation(fields: [id_pedido], references: [id])
+
+  id_produto Int
+  produto    Produto @relation(fields: [id_produto], references: [id])
+
+  @@map("itens")
+}
+
+model Pagamento {
+  id           Int    @id @default(autoincrement())
+  id_cliente   Int?
+  id_pedido    Int
+  id_transacao BigInt @unique
+  descricao    String
+  plataforma   String
+  valor        Float
+  status       String @default("PENDENTE")
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  // TODO implementar relação quando Pedido existir
+  pedido Pedido? @relation(fields: [id_pedido], references: [id])
+
+  // pedido        Pedido @relation(fields: [id_pedido], references: [id]) 
+  cliente Cliente? @relation(fields: [id_cliente], references: [id])
+
+  @@map("pagamentos")
+}
+
+//Comentando o enum aqui para parar de conflitar com meu do código
+// enum StatusPedido {
+//   INICIADO
+//   RECEBIDO
+//   EM_PREPARACAO
+//   PRONTO
+//   FINALIZADO
+// }
